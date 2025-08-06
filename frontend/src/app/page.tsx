@@ -14,6 +14,7 @@ import { listenerCount } from 'process';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useRouter } from 'next/navigation';
+import { useMeetingNotes } from '@/hooks/useMeetingNotes';
 import type { CurrentMeeting } from '@/components/Sidebar/SidebarProvider';
 
 interface TranscriptUpdate {
@@ -67,6 +68,7 @@ export default function Home() {
   const { setCurrentMeeting, setMeetings ,meetings, isMeetingActive, setIsMeetingActive} = useSidebar();
   const handleNavigation = useNavigation('', ''); // Initialize with empty values
   const router = useRouter();
+  const { createNoteFromTranscript } = useMeetingNotes();
 
   const modelOptions = {
     ollama: models.map(model => model.name),
@@ -745,6 +747,16 @@ export default function Home() {
     navigator.clipboard.writeText(fullTranscript);
   }, [transcripts]);
 
+  const handleCreateNote = useCallback(() => {
+    if (transcripts.length === 0) {
+      console.log('No transcripts available to create note');
+      return;
+    }
+    
+    createNoteFromTranscript(transcripts, meetingTitle);
+    router.push('/notes');
+  }, [transcripts, meetingTitle, createNoteFromTranscript, router]);
+
   const handleGenerateSummary = useCallback(async () => {
     if (!transcripts.length) {
       console.log('No transcripts available for summary');
@@ -798,6 +810,21 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 3v3.75a.75.75 0 0 0 .75.75H18" />
                   </svg>
                   <span className="text-sm">Copy Transcript</span>
+                </button>
+                <button
+                  onClick={handleCreateNote}
+                  disabled={transcripts.length === 0}
+                  className={`px-3 py-2 border rounded-md transition-all duration-200 inline-flex items-center gap-2 shadow-sm ${
+                    transcripts.length === 0
+                      ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300 active:bg-purple-200'
+                  }`}
+                  title={transcripts.length === 0 ? 'No transcript available' : 'Create Note from Transcript'}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0118 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                  </svg>
+                  <span className="text-sm">Create Note</span>
                 </button>
                 {showSummary && !isRecording && (
                   <>

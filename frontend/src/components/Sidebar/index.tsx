@@ -83,8 +83,7 @@ const Sidebar: React.FC = () => {
         </button>
         <button
           onClick={() => {
-            if (isCollapsed) toggleCollapse();
-            toggleFolder('notes');
+            router.push('/notes');
           }}
           className="p-2 hover:bg-gray-100 rounded-md transition-colors"
           title="Notes"
@@ -122,10 +121,14 @@ const Sidebar: React.FC = () => {
                 return;
               }
               
-              setCurrentMeeting({ id: item.id, title: item.title });
-              const basePath = item.id.startsWith('intro-call') ? '/' : 
-                item.id.includes('-') ? '/meeting-details' : `/notes/${item.id}`;
-              router.push(basePath);
+              if (item.id === 'notes' || item.id.startsWith('note-')) {
+                router.push('/notes');
+              } else {
+                setCurrentMeeting({ id: item.id, title: item.title });
+                const basePath = item.id.startsWith('intro-call') ? '/' : 
+                  item.id.includes('-') ? '/meeting-details' : `/notes/${item.id}`;
+                router.push(basePath);
+              }
             }
           }}
         >
